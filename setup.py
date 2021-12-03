@@ -5,7 +5,7 @@ HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
 setup(name="dyn_rl_benchmarks",
-      version="1.0.1",
+      version="1.0.2",
       description="Reinforcement learning benchmark problems set in dynamic environments.",
       author="Nico Gürtler",
       author_email="nico.guertler@tuebingen.mpg.de",
