@@ -1,0 +1,6 @@
+*.swp
+*.swo
+*.egg-info
+*.blend1
+__pycache__
+venv
