@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name="dyn_rl_benchmarks",
-      version="1.0",
+      version="1.0.0",
       description="Reinforcement learning benchmark problems set in dynamic environments.",
       author="Nico Gürtler",
       author_email="nico.guertler@tuebingen.mpg.de",
