@@ -8,8 +8,6 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-from graphrl.logging import CSVLogger
-
 from roboball2d.physics import B2World
 from roboball2d.robot import DefaultRobotConfig
 from roboball2d.robot import DefaultRobotState
@@ -59,7 +57,7 @@ class Tennis2DEnv(gym.GoalEnv):
     _arrow_head_size = 0.06
     _arrow_scaling = 0.3
 
-    def __init__(self, slow_motion_factor = 2.0, logfile=None, log_all_diffs=False):
+    def __init__(self, slow_motion_factor = 2.0):
         super().__init__()
 
         self._subgoals = []
@@ -68,13 +66,6 @@ class Tennis2DEnv(gym.GoalEnv):
         self._subgoal_colors = []
         self._logfile = logfile
         self._log_all_diffs = log_all_diffs
-
-        fieldnames = ["time_diff"]
-
-        if logfile is not None:
-            self.logger = CSVLogger(logfile, fieldnames, append = False)
-        else:
-            self.logger = None
 
         # maximum episode length in steps
         self.max_episode_length = int(self._max_episode_length_sec*self._steps_per_sec)
@@ -202,9 +193,6 @@ class Tennis2DEnv(gym.GoalEnv):
 
         self.action_space = spaces.Dict(act_space_dict)
 
-        self._racket_ball_contacts = []
-        self._achievement_times = []
-
         # reset to make sure environment is not used without resetting it first
         self.reset()
 
@@ -219,9 +207,6 @@ class Tennis2DEnv(gym.GoalEnv):
 
         # perform one step of physics simulation, receive new world state
         self._world_state = self._world.step(torques, relative_torques = True)
-
-        if self._world_state.balls_hits_racket[0] == True:
-            self._racket_ball_contacts.append(self._world_state.t)
 
         # clip angular velocities to make sure they are in a bounded interval
         for joint in self._world_state.robots[0].joints:
@@ -279,20 +264,10 @@ class Tennis2DEnv(gym.GoalEnv):
                 int(self._n_ball_bounces >= 2)]
 
     def update_subgoals(self, subgoals, tolerances = None):
-        if (subgoals[0] is not None and
-            (self._subgoals
-            and self._subgoals[0] is not None
-            and self._subgoals[0] != subgoals[0])):
-            self._achievement_times.append(self._world_state.t)
         self._subgoals = subgoals
         self._tolerances = tolerances
 
     def update_timed_subgoals(self, timed_subgoals, tolerances = None):
-        if (timed_subgoals[0] is not None and 
-            (not self._timed_subgoals
-            or self._timed_subgoals[0] is None 
-            or timed_subgoals[0].delta_t_ach > self._timed_subgoals[0].delta_t_ach)):
-            self._achievement_times.append(self._world_state.t + timed_subgoals[0].delta_t_ach/self._steps_per_sec)
         self._subgoals = [tsg.goal for tsg in timed_subgoals if tsg is not None]
         self._timed_subgoals = timed_subgoals
         self._tolerances = tolerances
@@ -316,28 +291,6 @@ class Tennis2DEnv(gym.GoalEnv):
         # sample goal position (last three components indicate that ball bounced for 
         # the second time in this time step)
         self._desired_goal = np.array([self.np_random.uniform(0., 1.), 1., 1., 1.])
-
-        # log contact  time diffs if available
-        if (self.logger is not None and len(self._racket_ball_contacts) > 0 
-                and len(self._achievement_times) > 0):
-            first_contact = np.amin(self._racket_ball_contacts)
-            time_diff = np.array(self._achievement_times) - first_contact
-            if self._log_all_diffs:
-                for diff in np.nditer(time_diff):
-                    row_dict = {
-                            "time_diff": diff
-                            }
-                    self.logger.log(row_dict)
-            else:
-                time_diff = np.amin(np.abs(time_diff))
-                print(time_diff)
-                row_dict = {
-                        "time_diff": time_diff
-                        }
-                self.logger.log(row_dict)
-
-        self._racket_ball_contacts = []
-        self._achievement_times = []
 
         return self.get_observation()
 

@@ -28,7 +28,7 @@ import gym
 
 import dyn_rl_benchmarks
 
-env = gym.make(args.env)
+env = gym.make("Platforms-v1")
 
 obs = env.reset()
 done = False
@@ -36,7 +36,6 @@ while not done:
   action = env.action_space.sample()
   obs, rew, done, info = env.step(action)
   env.render()
-
 ```
 
 ## How to cite
