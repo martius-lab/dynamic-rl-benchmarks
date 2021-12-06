@@ -4,3 +4,4 @@
 *.blend1
 __pycache__
 venv
+build

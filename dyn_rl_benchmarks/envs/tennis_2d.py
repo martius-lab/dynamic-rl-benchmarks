@@ -64,8 +64,6 @@ class Tennis2DEnv(gym.GoalEnv):
         self._timed_subgoals = []
         self._tolerances = None
         self._subgoal_colors = []
-        self._logfile = logfile
-        self._log_all_diffs = log_all_diffs
 
         # maximum episode length in steps
         self.max_episode_length = int(self._max_episode_length_sec*self._steps_per_sec)
